@@ -1,34 +1,29 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { OpenApiConfiguration } from './shared/infrastructure/documentation/openapi/configuration/OpenApiConfiguration';
+import * as dotenv from "dotenv";
+import * as bodyParser from "body-parser";
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
+  dotenv.config();
   const app = await NestFactory.create(AppModule);
-  
-  // Configuración de CORS (opcional)
-  app.enableCors();
-  
-  // Configurar codificación UTF-8
-  app.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    next();
+
+  app.enableCors({
+    origin: "*",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
   });
 
-  // Configuración de Swagger
-  const config = new DocumentBuilder()
-    .setTitle('TutorMatch API')
-    .setDescription('API para la plataforma TutorMatch de gestión de tutorías académicas')
-    .setVersion('1.0')
-    .addTag('profiles', 'Operaciones relacionadas con perfiles de usuarios')
-    .addBearerAuth()
-    .build();
-    
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-  
-  await app.listen(process.env.PORT ?? 3000);
-  
-  console.log(`Aplicación ejecutándose en: ${await app.getUrl()}`);
-  console.log(`Documentación Swagger disponible en: ${await app.getUrl()}/api`);
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  }));
+
+  OpenApiConfiguration.setup(app);
+
+  app.use(bodyParser.json({ limit: "10mb" }));
+  app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
+  await app.listen(3000);
 }
 bootstrap();
