@@ -10,6 +10,9 @@ import { StorageService } from './storage.service';
 import { STORAGE_REPOSITORY } from './constants/storage.constants';
 import * as path from 'path';
 import * as fs from 'fs';
+import { TutoringModule } from 'src/tutoring/tutoring.module';
+import { TutoringImageService } from './application/services/tutoringImage.service';
+import { TutoringSessionService } from 'src/tutoring/application/services/tutoring-session.service';
 
 // Crear directorio temporal si no existe
 const tmpDir = path.join(process.cwd(), 'tmp');
@@ -17,10 +20,16 @@ if (!fs.existsSync(tmpDir)) {
   fs.mkdirSync(tmpDir, { recursive: true });
 }
 
+const tutoringImagesDir = path.join(tmpDir, 'tutoring-images');
+if (!fs.existsSync(tutoringImagesDir)) {
+  fs.mkdirSync(tutoringImagesDir, { recursive: true });
+}
+
 @Module({
   imports: [
     ConfigModule,
     ProfilesModule,
+    TutoringModule,
     MulterModule.register({
       dest: tmpDir,
       limits: {
@@ -41,7 +50,13 @@ if (!fs.existsSync(tmpDir)) {
         new AvatarService(storageRepository, profileService),
       inject: [STORAGE_REPOSITORY, ProfileService],
     },
+    {
+      provide: TutoringImageService,
+      useFactory: (storageRepository, tutoringSessionService) => 
+        new TutoringImageService(storageRepository, tutoringSessionService),
+      inject: [STORAGE_REPOSITORY, TutoringSessionService],
+    },
   ],
-  exports: [AvatarService, StorageService, STORAGE_REPOSITORY],
+  exports: [AvatarService, TutoringImageService, StorageService, STORAGE_REPOSITORY],
 })
 export class StorageModule {}
