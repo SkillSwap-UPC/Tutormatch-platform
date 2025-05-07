@@ -84,4 +84,22 @@ export class AuthService {
     
     return data.user;
   }
+
+    /**
+   * Elimina un usuario de Supabase Auth
+   * @param userId El ID del usuario a eliminar
+   * @returns Un objeto indicando el éxito de la operación
+   */
+    async deleteUser(userId: string) {
+      // Esta operación requiere permisos de admin en Supabase
+      const { error } = await this.supabase.auth.admin.deleteUser(
+        userId
+      );
+      
+      if (error) {
+        throw error;
+      }
+  
+      return { success: true, message: 'User successfully deleted from authentication system' };
+    }
 }

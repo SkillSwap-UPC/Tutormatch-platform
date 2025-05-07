@@ -23,7 +23,7 @@ export class CreateProfileDto {
   @IsNotEmpty()
   lastName: string;
 
-  @ApiProperty({ description: 'Gender', enum: ['male', 'female', 'other'] })
+  @ApiProperty({ description: 'Gender', enum: ['male', 'female', 'other', 'preferredNotSay'] })
   @IsString()
   @IsNotEmpty()
   gender: string;

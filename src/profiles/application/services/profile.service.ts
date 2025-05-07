@@ -5,13 +5,16 @@ import { ProfileRepository } from '../../domain/repositories/profile.repository.
 import { CreateProfileDto } from '../dtos/create-profile.dto';
 import { UpdateProfileDto } from '../dtos/update-profile.dto';
 import { PROFILE_REPOSITORY } from '../../profiles.module';
+import { AuthService } from '../../../auth/auth.service';
 
 
 @Injectable()
 export class ProfileService {
   constructor(
     @Inject(PROFILE_REPOSITORY)
-    private readonly profileRepository: ProfileRepository) {}
+    private readonly profileRepository: ProfileRepository,
+    private readonly authService: AuthService
+  ) {}
 
   async findAll(): Promise<Profile[]> {
     return this.profileRepository.findAll();
@@ -97,6 +100,20 @@ export class ProfileService {
       throw new NotFoundException(`Profile with ID "${id}" not found`);
     }
 
-    return this.profileRepository.delete(id);
+    // Primero eliminamos el perfil de la base de datos
+    const deleted = await this.profileRepository.delete(id);
+    
+    if (deleted) {
+      try {
+        // Luego eliminamos el usuario de Supabase Auth
+        await this.authService.deleteUser(id);
+      } catch (error) {
+        console.error('Error deleting user from auth system:', error);
+        // Considera si debes revertir la eliminación del perfil o no
+        // Dependiendo de tu lógica de negocio
+      }
+    }
+
+    return deleted;
   }
 }
