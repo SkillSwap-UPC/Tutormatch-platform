@@ -2,7 +2,7 @@ services:
   - type: web
     name: tutormatch-api
     env: node
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && nest build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
