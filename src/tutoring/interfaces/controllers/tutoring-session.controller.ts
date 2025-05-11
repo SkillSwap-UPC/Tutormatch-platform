@@ -34,7 +34,6 @@ export class TutoringSessionController {
   @ApiResponse({ status: 200, description: 'Return all tutoring sessions or filtered sessions.' })
   async findAll(
     @Query('tutorId') tutorId?: string,
-    @Query('studentId') studentId?: string,
     @Query('courseId') courseId?: string
   ) {
     if (tutorId) {
