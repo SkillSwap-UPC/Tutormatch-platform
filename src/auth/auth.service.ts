@@ -21,7 +21,7 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    const { email, password, firstName, lastName, gender, semesterNumber, role } = registerDto;
+    const { email, password, firstName, lastName, phone, gender, semesterNumber, role } = registerDto;
     
     const { data, error } = await this.supabase.auth.signUp({
       email,
@@ -30,6 +30,7 @@ export class AuthService {
         data: {
           firstName,
           lastName,
+          phone,
           gender,
           semesterNumber,
           role

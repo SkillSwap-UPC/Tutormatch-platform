@@ -23,6 +23,11 @@ export class RegisterDto {
   @IsNotEmpty()
   lastName: string;
 
+  @ApiProperty({ description: 'Phone number' })
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+
   @ApiProperty({ description: 'Gender', enum: ['male', 'female', 'other'] })
   @IsString()
   @IsNotEmpty()
