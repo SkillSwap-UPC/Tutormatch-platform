@@ -28,7 +28,7 @@ export class SupabaseStorageRepository implements StorageRepository {
     if (!bucketExists) {
       const { error } = await this.supabase.storage.createBucket(bucketName, {
         public: isPublic,
-        fileSizeLimit: 1024 * 1024 * 2, // 2MB límite por archivo
+        fileSizeLimit: 1024 * 1024 * 5,
       });
       
       if (error) {
