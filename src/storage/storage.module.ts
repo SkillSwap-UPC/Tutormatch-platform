@@ -10,6 +10,7 @@ import { STORAGE_REPOSITORY } from './constants/storage.constants';
 import { TutoringModule } from 'src/tutoring/tutoring.module';
 import { TutoringImageService } from './application/services/tutoringImage.service';
 import { TutoringSessionService } from 'src/tutoring/application/services/tutoring-session.service';
+import { PaymentProofService } from './application/services/paymentProof.service';
 
 @Module({
   imports: [
@@ -36,7 +37,12 @@ import { TutoringSessionService } from 'src/tutoring/application/services/tutori
         new TutoringImageService(storageRepository, tutoringSessionService),
       inject: [STORAGE_REPOSITORY, TutoringSessionService],
     },
+    {
+      provide: PaymentProofService,
+      useFactory: (storageRepository) => new PaymentProofService(storageRepository),
+      inject: [STORAGE_REPOSITORY],
+    },
   ],
-  exports: [AvatarService, TutoringImageService, StorageService, STORAGE_REPOSITORY],
+  exports: [AvatarService, TutoringImageService, StorageService, STORAGE_REPOSITORY, PaymentProofService],
 })
 export class StorageModule {}

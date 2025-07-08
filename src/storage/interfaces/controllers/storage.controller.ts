@@ -22,17 +22,23 @@ import { StorageFile } from '../../domain/models/storage-file.model';
 import { UploadFileDto } from '../../dto/upload-file.dto';
 import { TutoringImageService } from 'src/storage/application/services/tutoringImage.service';
 import { UploadTutoringImageDto } from 'src/storage/dto/upload-tutoringImage.dto';
+import { PaymentProofService } from '../../application/services/paymentProof.service';
 import { memoryStorage } from 'multer';
+import { UploadPaymentProofDto } from '../../dto/upload-paymentProof.dto';
 
 @ApiTags('storage')
 @Controller('storage')
 export class StorageController {
   private readonly logger = new Logger(StorageController.name);
 
-  constructor(private readonly avatarService: AvatarService,
-    private readonly tutoringImageService: TutoringImageService
+  constructor(
+    private readonly avatarService: AvatarService,
+    private readonly tutoringImageService: TutoringImageService,
+    private readonly paymentProofService: PaymentProofService
   ) {
-  }  @Post('avatars')
+  }
+
+  @Post('avatars')
   @ApiOperation({ summary: 'Subir un avatar para un usuario' })
   @ApiConsumes('multipart/form-data')
   @ApiResponse({ status: 201, description: 'Avatar subido con éxito', type: StorageFile })
@@ -225,6 +231,96 @@ export class StorageController {
     @Param('fileName') fileName: string
   ): Promise<{ success: boolean }> {
     const result = await this.tutoringImageService.deleteTutoringImage(tutoringId, fileName);
+    return { success: result };
+  }
+
+  @Post('payment-proofs')
+  @ApiOperation({ summary: 'Subir comprobante de pago para un usuario' })
+  @ApiConsumes('multipart/form-data')
+  @ApiResponse({ status: 201, description: 'Comprobante subido con éxito', type: StorageFile })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB
+      },
+      fileFilter: (req, file, cb) => {
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg', 'application/pdf'];
+        if (allowedMimes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(new BadRequestException(`Tipo de archivo no permitido: ${file.mimetype}`), false);
+        }
+      }
+    })
+  )
+  async uploadPaymentProof(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() uploadPaymentProofDto: UploadPaymentProofDto
+  ): Promise<StorageFile> {
+    try {
+      this.logger.log(`Solicitud para subir comprobante recibida:`);
+      this.logger.log(`UserId: ${uploadPaymentProofDto.user_id}`);
+      this.logger.log(`Archivo: ${JSON.stringify({
+        fieldname: file?.fieldname,
+        originalname: file?.originalname,
+        size: file?.size,
+        mimetype: file?.mimetype,
+        hasBuffer: !!file?.buffer,
+        bufferLength: file?.buffer?.length
+      })}`);
+
+      if (!file) {
+        this.logger.error('Archivo no recibido por el controlador');
+        throw new BadRequestException('No se recibió ningún archivo');
+      }
+      if (!file.buffer) {
+        this.logger.error('Buffer del archivo no disponible');
+        throw new BadRequestException('El archivo no contiene datos válidos');
+      }
+      if (!uploadPaymentProofDto.user_id) {
+        this.logger.error('user_id no proporcionado');
+        throw new BadRequestException('Se requiere un ID de usuario');
+      }
+      const result = await this.paymentProofService.uploadPaymentProof(
+        uploadPaymentProofDto.user_id,
+        file,
+        uploadPaymentProofDto.file_name
+      );
+      this.logger.log(`Comprobante subido con éxito. URL: ${result.url}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Error al subir comprobante: ${error.message}`, error.stack);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error al procesar el comprobante: ${error.message}`);
+    }
+  }
+
+  @Get('payment-proofs/:userId/:fileName')
+  @ApiOperation({ summary: 'Obtener URL del comprobante de pago de un usuario' })
+  @ApiParam({ name: 'userId', description: 'ID del usuario' })
+  @ApiParam({ name: 'fileName', description: 'Nombre del archivo' })
+  @ApiResponse({ status: 200, description: 'URL del comprobante' })
+  async getPaymentProofUrl(
+    @Param('userId') userId: string,
+    @Param('fileName') fileName: string
+  ): Promise<{ url: string }> {
+    const url = await this.paymentProofService.getPaymentProofUrl(userId, fileName);
+    return { url };
+  }
+
+  @Delete('payment-proofs/:userId/:fileName')
+  @ApiOperation({ summary: 'Eliminar comprobante de pago de un usuario' })
+  @ApiParam({ name: 'userId', description: 'ID del usuario' })
+  @ApiParam({ name: 'fileName', description: 'Nombre del archivo' })
+  @ApiResponse({ status: 200, description: 'Comprobante eliminado' })
+  async deletePaymentProof(
+    @Param('userId') userId: string,
+    @Param('fileName') fileName: string
+  ): Promise<{ success: boolean }> {
+    const result = await this.paymentProofService.deletePaymentProof(userId, fileName);
     return { success: result };
   }
 
