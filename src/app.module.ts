@@ -9,6 +9,7 @@ import { CoursesModule } from './courses/courses.module';
 import { SemestersModule } from './semesters/semesters.module';
 import { SeederModule } from './database/seeder/seeder.module';
 import { TutoringModule } from './tutoring/tutoring.module';
+import { MembershipModule } from './membership/membership.module';
 
 
 @Module({
@@ -22,6 +23,7 @@ import { TutoringModule } from './tutoring/tutoring.module';
   TutoringModule,
   AuthModule,
   StorageModule,
+  MembershipModule,
   SeederModule
   ],
   controllers: [AppController],
