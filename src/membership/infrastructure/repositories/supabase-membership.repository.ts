@@ -60,6 +60,12 @@ export class SupabaseMembershipRepository implements MembershipRepository {
     return this.mapToModel(data);
   }
 
+  async findAll(): Promise<Membership[]> {
+    const { data, error } = await this.supabase.from('memberships').select('*');
+    if (error) throw new Error('Error fetching memberships');
+    return data.map(this.mapToModel);
+  }
+
   private mapToModel(data: any): Membership {
     return new Membership(
       data.id,

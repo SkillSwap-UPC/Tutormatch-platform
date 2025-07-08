@@ -38,4 +38,11 @@ export class MembershipController {
   ): Promise<Membership> {
     return this.membershipService.updateMembershipStatus(id, body.status);
   }
+
+  @Get()
+  @ApiOperation({ summary: 'Obtener todas las membresías' })
+  @ApiResponse({ status: 200, description: 'Lista de membresías', type: [Membership] })
+  async getAllMemberships(): Promise<Membership[]> {
+    return this.membershipService.getAllMemberships();
+  }
 }

@@ -22,4 +22,8 @@ export class MembershipService {
   async updateMembershipStatus(id: string, status: 'pending' | 'active' | 'rejected'): Promise<Membership> {
     return this.membershipRepository.updateStatus(id, status);
   }
+
+  async getAllMemberships(): Promise<Membership[]> {
+    return this.membershipRepository.findAll();
+  }
 }
